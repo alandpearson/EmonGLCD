@@ -1,13 +1,13 @@
-/* 
- * Native mode RF69 driver.
- *
- * Derived from the JeeLabs file rf69.h, with some small changes (RSSI)
- *
- * OpenEnergyMonitor version V1.0.0 
- *
- * Note 1: Default transmit power reduced to +7 dBm to avoid damage to RFM if no effective antenna is present.
- * Note 2: This is not related to the JeeLib file RF69.h [RF in capital letters]
- */
+/*
+   Native mode RF69 driver.
+
+   Derived from the JeeLabs file rf69.h, with some small changes (RSSI)
+
+   OpenEnergyMonitor version V1.0.0
+
+   Note 1: Default transmit power reduced to +7 dBm to avoid damage to RFM if no effective antenna is present.
+   Note 2: This is not related to the JeeLib file RF69.h [RF in capital letters]
+*/
 
 
 #define RFM69_MAXDATA 62
@@ -56,28 +56,29 @@ class RF69 {
       REG_IRQFLAGS2     = 0x28,
       REG_SYNCVALUE1    = 0x2F,
       REG_SYNCVALUE2    = 0x30,
+      REG_PKTCONFIG     = 0X37,
       REG_NODEADDR      = 0x39,
       REG_BCASTADDR     = 0x3A,
       REG_FIFOTHRESH    = 0x3C,
       REG_PKTCONFIG2    = 0x3D,
       REG_AESKEYMSB     = 0x3E,
 
-      MODE_SLEEP        = 0<<2,
-      MODE_STANDBY      = 1<<2,
-      MODE_TRANSMIT     = 3<<2,
-      MODE_RECEIVE      = 4<<2,
+      MODE_SLEEP        = 0 << 2,
+      MODE_STANDBY      = 1 << 2,
+      MODE_TRANSMIT     = 3 << 2,
+      MODE_RECEIVE      = 4 << 2,
 
       START_TX          = 0xC2,
       STOP_TX           = 0x42,
 
       RCCALSTART        = 0x80,
-      IRQ1_MODEREADY    = 1<<7,
-      IRQ1_RXREADY      = 1<<6,
-      IRQ1_SYNADDRMATCH = 1<<0,
+      IRQ1_MODEREADY    = 1 << 7,
+      IRQ1_RXREADY      = 1 << 6,
+      IRQ1_SYNADDRMATCH = 1 << 0,
 
-      IRQ2_FIFONOTEMPTY = 1<<6,
-      IRQ2_PACKETSENT   = 1<<3,
-      IRQ2_PAYLOADREADY = 1<<2,
+      IRQ2_FIFONOTEMPTY = 1 << 6,
+      IRQ2_PACKETSENT   = 1 << 3,
+      IRQ2_PAYLOADREADY = 1 << 2,
     };
 
     void setMode (uint8_t newMode);
@@ -113,8 +114,8 @@ void RF69<SPI>::setFrequency (uint32_t hz) {
   // 434.0 MHz = 0x6C8000.
   uint32_t frf = (hz << 2) / (32000000L >> 11);
   writeReg(REG_FRFMSB, frf >> 10);
-  writeReg(REG_FRFMSB+1, frf >> 2);
-  writeReg(REG_FRFMSB+2, frf << 6);
+  writeReg(REG_FRFMSB + 1, frf >> 2);
+  writeReg(REG_FRFMSB + 2, frf << 6);
 }
 
 template< typename SPI >
@@ -129,7 +130,7 @@ void RF69<SPI>::configure (const uint8_t* p) {
 }
 
 static const uint8_t configRegs [] = {
-// POR value is better for first rf_sleep  0x01, 0x00, // OpMode = sleep
+  // POR value is better for first rf_sleep  0x01, 0x00, // OpMode = sleep
   0x02, 0x00, // DataModul = packet mode, fsk
   0x03, 0x02, // BitRateMsb, data rate = 49,261 bits/s
   0x04, 0x8A, // BitRateLsb, divider = 32 MHz / 650
@@ -252,6 +253,7 @@ int RF69<SPI>::receive (void* ptr, int len) {
       // ... or any packet if we're the special catch-all node
       rssi = readReg(REG_RSSIVALUE);   // Duplicated here - RW
       uint8_t dest = *(uint8_t*) ptr;
+
       if ((dest & 0xC0) == parity) {
         uint8_t destId = dest & 0x3F;
         if (destId == myId || destId == 0 || myId == 63)

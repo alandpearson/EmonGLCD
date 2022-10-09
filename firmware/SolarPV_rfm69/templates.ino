@@ -271,19 +271,19 @@ void draw_solar_page(double use, double usekwh, double gen, double maxgen, doubl
   glcd.setFont(font_helvB14);
 
   // Amount of energy coming from or going into the grid
- 
-    dtostrf(use / 1000, 2, 1, str);
-    glcd.drawString(3, 0, str);
+
+  dtostrf(use / 1000, 2, 1, str);
+  glcd.drawString(3, 0, str);
 
 
   // Amount of energy being generated
-    dtostrf(gen / 1000, 2, 1, str);
-    glcd.drawString(88, 0, str);
+  dtostrf(gen / 1000, 2, 1, str);
+  glcd.drawString(88, 0, str);
 
 
 
   glcd.setFont(font_clR4x6);       //small font - Kw & Kwh
-  glcd.drawString(36, 8, "Kw");  
+  glcd.drawString(36, 8, "Kw");
   glcd.drawString(114, 8, "Kw");
 
 
@@ -313,16 +313,27 @@ void draw_solar_page(double use, double usekwh, double gen, double maxgen, doubl
   // Temperature
   glcd.setFont(font_helvB08);
 
-  //in temp
-  strcpy (str, "") ;
-  dtostrf(outtemp, 0, 1, str);
-  strcat(str, "c");
-  glcd.drawString(12, 55, str);
-
   //out temp
   strcpy (str, "") ;
-  dtostrf(intemp, 0, 1, str);
-  strcat(str, "c");
+
+  if (outtemp < MINTEMP ) {
+    strcpy (str, "--.-c");
+  }  else {
+    dtostrf(outtemp, 0, 1, str);
+    strcat(str, "c");
+  }
+  
+  glcd.drawString(12, 55, str);
+
+  //in temp
+  strcpy (str, "") ;
+   if (intemp < MINTEMP ) {
+    strcpy (str, "--.-c");
+  }  else {
+    dtostrf(intemp, 0, 1, str);
+    strcat(str, "c");
+  }
+
   glcd.drawString(85, 55, str);
 
 
@@ -338,23 +349,23 @@ void draw_solar_page(double use, double usekwh, double gen, double maxgen, doubl
 
   glcd.setFont(font_lubB12);
 
-/*
-  // Current date + time
-  itoa((int)now.day(), str, 10);
-  strcat(str, "/");
+  /*
+    // Current date + time
+    itoa((int)now.day(), str, 10);
+    strcat(str, "/");
 
-  itoa((int)now.month(), str2, 10);
-  strcat(str, str2);
-  strcat(str, "/");
+    itoa((int)now.month(), str2, 10);
+    strcat(str, str2);
+    strcat(str, "/");
 
-  //itoa((int)(now.year() - 2000), str2, 10);
-  //strcat(str, str2);
-  //strcat (str, " ") ;
-  glcd.drawString(5, 30, str);
-*/
+    //itoa((int)(now.year() - 2000), str2, 10);
+    //strcat(str, str2);
+    //strcat (str, " ") ;
+    glcd.drawString(5, 30, str);
+  */
 
   strcpy(str, "") ;
- 
+
   if (now.hour() < 10) {
     strcpy(str, "0") ;
     itoa((int)now.hour(), str2, 10);
