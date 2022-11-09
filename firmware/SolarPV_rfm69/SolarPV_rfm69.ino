@@ -68,6 +68,7 @@ GLCD_ST7565 glcd;
 #include <DallasTemperature.h>      // http://download.milesburton.com/Arduino/MaximTemperature/ (3.7.2 Beta needed for Arduino 1.0)
 #include <RTClib.h>                 // Real time clock (RTC) - used for software RTC to reset kWh counters at midnight
 #include <Wire.h>                   // Part of Arduino libraries - needed for RTClib
+#include <avr/wdt.h>
 RTC_Millis RTC;
 
 //--------------------------------------------------------------------------------------------
@@ -194,15 +195,19 @@ unsigned long fast_update, slow_update;
 //--------------------------------------------------------------------------------------------
 void setup()
 {
-  DeviceAddress insideThermometer ;
   
-  delay(500); 				   //wait for power to settle before firing up the RF
+  
+  DeviceAddress insideThermometer ;
+
+  
+  delay(200); 				   //wait for power to settle before firing up the RF
+  
+  wdt_enable(WDTO_8S) ;
+  
   rf.init(MYNODE, 210, 434);
-  delay(100);				   //wait for RF to settle befor turning on display
   glcd.begin(0x19);
   glcd.backLight(200);
 
-  Serial.begin(57600);
   sensors.begin();                         // start up the DS18B20 temp sensor onboard
   sensors.getAddress(insideThermometer, 0);  
   sensors.setResolution(insideThermometer, 12);
@@ -219,8 +224,8 @@ void setup()
   digitalWrite(switch1, HIGH); digitalWrite(switch2, HIGH); digitalWrite(switch3, HIGH);
 #endif
 
-  //Set Date to a reasonable default (midnight, Jan1, 2020)
-  RTC.adjust(DateTime(2020, 1, 1, 0, 0, 0));
+  //Set Date to a reasonable default (midnight, Jan1, 2022)
+  RTC.adjust(DateTime(2022, 1, 1, 0, 0, 0));
 }
 
 //--------------------------------------------------------------------------------------------
@@ -389,7 +394,9 @@ void loop()
     int LDR = analogRead(LDRpin);                     // Read the LDR Value so we can work out the light level in the room.
     int LDRbacklight = map(LDR, 0, 1023, 1, 250);    // Map the data from the LDR from 0-1023 (Max seen 1000) to var GLCDbrightness min/max
     LDRbacklight = constrain(LDRbacklight, 0, 255);   // Constrain the value to make sure its a PWM value 0-255
-    if ((hour > 23) ||  (hour < 6)) glcd.backLight(0); else
+
+    //Turn backlight off from 2100 - 0800
+    if ((hour >= 21) ||  (hour <= 8)) glcd.backLight(0); else
       glcd.backLight(LDRbacklight);
 
     int PWRleds = 0 ;
@@ -439,4 +446,7 @@ void loop()
 
 
   }
+
+  wdt_reset();
+  
 }
